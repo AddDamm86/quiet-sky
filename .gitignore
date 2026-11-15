@@ -1,0 +1,2 @@
+# type definitions the engine lays down beside a mod; they belong to the engine version, not to this plugin
+.claude-plugin/types/

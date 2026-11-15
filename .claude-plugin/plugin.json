@@ -2,8 +2,9 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "quiet-sky",
   "version": "0.1.0",
-  "description": "A quiet deep-space backdrop behind the chat in the Claude desktop app: stars on the default dark background, two of the eight planets as small ASCII globes wandering the sky, a different pair in each conversation, Earth with its orbiting Moon, a shooting star now and then. /quiet-sky turns it on, /quiet-sky off clears it.",
+  "description": "A quiet deep-space backdrop behind the chat in the Claude desktop app: stars on the default dark background, two of the eight planets as small ASCII globes idling in the upper sky, two asteroids roaming behind them, a different sky in each conversation, Earth with its orbiting Moon, a shooting star now and then. /quiet-sky turns it on, /quiet-sky off clears it.",
   "author": {
     "name": "AddDamm86"
-  }
+  },
+  "license": "MIT"
 }

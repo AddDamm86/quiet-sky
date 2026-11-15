@@ -40,6 +40,10 @@ One value in the plugin's store: whether it is on. It reads the session's id to 
 
 `claude plugin disable quiet-sky@skills-dir` turns it off; deleting this folder removes it.
 
+## License
+
+MIT. The full text is in the LICENSE file beside this one.
+
 ## Checks
 
 Run them with the desktop app's own engine binary, which is newer than `claude` on PATH and knows backdrops:

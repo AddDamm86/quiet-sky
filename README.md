@@ -32,6 +32,12 @@ A new session starts with the saved choice. A session that is already open takes
 
 Something is always moving in this scene, so the window is redrawn all the time while it is on.
 
+## Known limits
+
+- The backdrop lies under the whole window, but the app's sidebars blur and tint what is under them, so no star shows there. That blur is the app's own: it stays with a glass blur of 0 and with the glass turned off.
+- A backdrop belongs to one session and is set by the plugin's code, which runs only while that session runs. So the screen for starting a new session shows none, a new session shows none until you send its first message, and neither does a session after `/clear` or one you reopen: it comes back at the next message. Anthropic's own theme-examples plugin lists the same limit.
+- When you switch to another session, the window shows the plain background first and the backdrop a moment later: the app asks that session for its backdrop only after it has switched. So that the backdrop does not pop in, the scene's first frame is that plain background too: it holds for 0.6 seconds, then the stars, asteroids and planets fade in over 3 seconds (`APPEAR` in `scene.ts`). With reduced motion they are there at once.
+
 ## What it stores
 
 One value in the plugin's store: whether it is on. It reads the session's id to pick the planets, reads nothing of your prompts or replies, and sends nothing anywhere.

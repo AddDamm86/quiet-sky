@@ -7,7 +7,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
-import { ASTEROID_COUNT, KEEP_CLEAR, PLANET_NAMES, pairFor, quietSkySvg, roamOf, rocksFor, trackOf } from './scene'
+import { ASTEROID_COUNT, KEEP_CLEAR, PLANET_NAMES, pairFor, quietSkySvg, roamOf, rocksFor, trackOf, withFreshAppear } from './scene'
 
 /** The scene name a conversation gets: its planets, then its asteroids. */
 const sceneFor = (conversation: string): string => `quiet-sky-${pairFor(conversation).join('-')}-${rocksFor(conversation).join('-')}`
@@ -191,6 +191,16 @@ test('a scene holds exactly its two planets, the Moon only with Earth, and fits 
     expect(source).toContain('@keyframes drift0{')
     expect(source).toContain('@keyframes drift1{')
     expect(source.split('class="bob"').length - 1).toBeGreaterThan(1)
+    // everything on the background is in the one group that starts unseen: the first 0.6 s of 3.6 s show the plain window
+    expect(source).toContain(`<rect width="1600" height="1000" fill="#191919"/>\n<g class="in">`)
+    expect(source).toContain('.in{animation:qs-appear 3.6s ease-in both}')
+    expect(source).toContain('@keyframes qs-appear{0%,16.67%{opacity:0}100%{opacity:1}}')
+    // for a window that joins, the same scene with a fade under a name of its own, and nothing else changed
+    const fresh = withFreshAppear(source, 7)
+    expect(fresh).toContain('.in{animation:qs-appear-7 3.6s ease-in both}')
+    expect(fresh).toContain('@keyframes qs-appear-7{0%,16.67%{opacity:0}100%{opacity:1}}')
+    expect(fresh.length).toBe(source.length + 2 * '-7'.length)
+    expect(withFreshAppear(source, 8)).not.toBe(fresh)
     expect(source.length).toBeLessThan(131072)
   }
   expect(withEarth).toContain('<g class="mx" style="--across:104px;--deep:24px">')

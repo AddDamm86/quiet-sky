@@ -8,7 +8,7 @@
 
 import type { EngineInterface, Register } from 'claude-code'
 
-import { ASTEROID_COUNT, GLASS, PLANET_NAMES, pairFor, quietSkySvg, rocksFor } from './scene'
+import { ASTEROID_COUNT, GLASS, PLANET_NAMES, pairFor, quietSkySvg, rocksFor, withFreshAppear } from './scene'
 import type { PlanetPair } from './scene'
 
 const PLUGIN = 'quiet-sky'
@@ -30,6 +30,9 @@ type AnyEngine = {
 
 // The scene this session has set, by name. It starts over on a reload; session.start then sets it again.
 let shown: string | undefined
+// How many times a window has joined this session. Each join gets the scene with a coming-in animation of its own,
+// so the fade starts over on every switch to the session and not on a redraw for a resized window.
+let joins = 0
 const built = new Map<string, string>()
 
 /** The sky a scene's name holds, or nothing where the name is not one of ours. */
@@ -145,6 +148,11 @@ async function follow($: EngineInterface): Promise<BackdropAnswer | undefined> {
     return undefined
   }
 
+  // Built before the app is told of it: when the app then asks for the drawing, the answer is ready and the
+  // backdrop is on screen as early as the app allows.
+  const sky = skyOfScene(wanted)
+  if (sky !== undefined) sceneOf(wanted, sky)
+
   const set = await setBackdrop($, { id: wanted, glass: GLASS })
   shown = wanted
 
@@ -212,6 +220,18 @@ export const register: Register = on => {
     return next(e)
   })
 
+  // A window joins the session (someone switches to it): the app asks for the backdrop right after (about 30 ms,
+  // measured 2026-11-16) and gets the scene with a fade of its own for this join.
+  on('session.attach', (_, e, next) => {
+    joins += 1
+
+    return next(e)
+  })
+
+  // The theme itself is not set again when a window joins: the engine keeps the session's theme
+  // and a window that attaches later draws it by itself. Setting it again on `session.attach` was tried (2026-11-16) and
+  // did not make the backdrop appear any sooner.
+
   on('command.run', { command: COMMAND }, async ($, e) => {
     try {
       return { text: await run($, e.args ?? '') }
@@ -238,6 +258,6 @@ export const register: Register = on => {
 
     const { Svg } = $.ui.resolve(e)
 
-    return <Svg isInteractive alt={`Quiet Sky: stars on a dark background, with ${sky.pair.join(' and ')} as small ASCII planets and two asteroids`} source={sceneOf(name, sky)} />
+    return <Svg isInteractive alt={`Quiet Sky: stars on a dark background, with ${sky.pair.join(' and ')} as small ASCII planets and two asteroids`} source={withFreshAppear(sceneOf(name, sky), joins)} />
   })
 }

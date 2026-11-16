@@ -719,6 +719,26 @@ export function idleOf(name: PlanetName): { heading: string; bobSeconds: number 
 
 const SWING = 'cubic-bezier(.37,0,.63,1)'
 
+/**
+ * How the scene comes in, in seconds. The app shows its plain window first and the backdrop a moment later, so the
+ * scene's first frame is that plain window too: for `hold` nothing but the background, then everything on it
+ * (stars, asteroids, planets) fades in over `fade`. It runs again on every switch to a session: see
+ * `withFreshAppear`.
+ */
+export const APPEAR = { hold: 0.6, fade: 3 }
+/** The name of the coming-in animation: a word that stands nowhere else in a scene, so it can be renamed safely. */
+const APPEAR_NAME = 'qs-appear'
+
+/**
+ * The same scene with its coming-in animation under a name of its own for `turn`. The app asks for the backdrop
+ * again each time a window joins the session, but a scene it has drawn before is already past its fade and would
+ * show at once. A new animation name makes it a new scene and a new animation, so the fade starts over, whether the
+ * app loads the scene afresh or only updates the one it has.
+ */
+export function withFreshAppear(source: string, turn: number): string {
+  return source.replaceAll(APPEAR_NAME, `${APPEAR_NAME}-${turn}`)
+}
+
 const STYLE = `
 .p text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:${FONT_SIZE}px;font-weight:700;white-space:pre}
 .t1{opacity:.95;animation:dip 9s linear infinite}
@@ -737,6 +757,8 @@ const STYLE = `
 @keyframes moon-across{from{transform:translateX(calc(-1 * var(--across)))}to{transform:translateX(var(--across))}}
 @keyframes moon-deep{from{transform:translateY(calc(-1 * var(--deep)))}to{transform:translateY(var(--deep))}}
 @keyframes moon-behind{0%,65.5%{opacity:1}66.5%,83.5%{opacity:0}84.5%,100%{opacity:1}}
+.in{animation:${APPEAR_NAME} ${APPEAR.hold + APPEAR.fade}s ease-in both}
+@keyframes ${APPEAR_NAME}{0%,${((APPEAR.hold / (APPEAR.hold + APPEAR.fade)) * 100).toFixed(2)}%{opacity:0}100%{opacity:1}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important}.mx{transform:translate(calc(var(--across) * .8),calc(var(--deep) * .66))}}`
 
 const DEFS = `<linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="-150" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#f2efe8" stop-opacity="0"/><stop offset="1" stop-color="#f2efe8" stop-opacity=".95"/></linearGradient>`
@@ -772,10 +794,12 @@ export function quietSkySvg(pair: PlanetPair = ['earth', 'saturn'], rocks: reado
     shootingStar('s1', 620, 70, 22, 24, 0) +
     shootingStar('s2', 180, 380, 17, 37, 11)
   const drift = [...planets.map((planet, which) => driftStyle(planet, which)), roamStyle(0), roamStyle(1)].join('\n')
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"><style>${STYLE}
+  // The background is the window's own colour, on the root too, so nothing changes when the scene is first drawn
+  // but what stands on it.
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="background:${BACKGROUND}"><style>${STYLE}
 ${drift}</style><defs>${DEFS}</defs>
 <rect width="${WIDTH}" height="${HEIGHT}" fill="${BACKGROUND}"/>
-${body}
+<g class="in">${body}</g>
 </svg>`
 }
 
